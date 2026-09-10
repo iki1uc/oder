@@ -1,379 +1,1014 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>IKI1UC · Axiom‑Orbit‑System · v2</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>◉ SPRUNG · SURE – Industrie‑6.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<style>
-    body { background:#0b0b0b; color:#e0e0e0; font-family:Consolas; padding:20px; }
-    h1 { color:#6cf; }
-    .container { max-width:900px; margin:0 auto; }
-    .flex { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:6px 0; }
-    #orbitCanvas { background:#000; border:1px solid #333; display:block; margin:6px 0; }
-    #log { background:#111; padding:10px; height:120px; overflow:auto; font-size:13px; margin-top:6px; }
-    .btn { padding:6px 14px; background:#222; color:#fff; border:1px solid #555; cursor:pointer; font-family:Consolas; }
-    .btn:hover { border-color:#6cf; }
-    .btn.active { border-color:#6cf; background:#2a3a4a; }
-    .btn.danger { border-color:#f44; color:#f44; }
-    .btn.danger:hover { background:#2a0a0a; }
-    .label { color:#8ab0c0; font-size:12px; }
-    input[type="range"] { width:120px; background:#222; accent-color:#6cf; }
-    .status { font-size:12px; color:#5a7a8a; }
-    .status .ok { color:#8cf0d0; }
-    .status .err { color:#ff6b6b; }
-    .badge { display:inline-block; padding:1px 10px; border-radius:12px; font-size:11px; border:1px solid #2a3a4a; }
-    .badge.aktiv { border-color:#8cf0d0; color:#8cf0d0; }
-    .badge.pause { border-color:#f0d080; color:#f0d080; }
-</style>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-primary: #0a0a12;
+      --bg-secondary: #0e141c;
+      --bg-card: #131a24;
+      --border-color: #1e2a3a;
+      --text-primary: #e8edf5;
+      --text-secondary: #9aa8c0;
+      --text-muted: #5a6a7e;
+      --gold: #ffd700;
+      --blue: #4b7cf7;
+      --green: #2ed98c;
+      --red: #f25a6a;
+      --purple: #a78bfa;
+      --cyan: #4dd0e1;
+      --shadow: 0 8px 32px rgba(0,0,0,0.7);
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .container {
+      max-width: 1400px;
+      width: 100%;
+      background: var(--bg-secondary);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+      padding: 24px 28px 32px;
+    }
+    .header {
+      display: flex; flex-wrap: wrap; align-items: center;
+      justify-content: space-between; margin-bottom: 24px; gap: 12px;
+    }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .header-left .logo {
+      width: 44px; height: 44px;
+      background: var(--gold);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; color: #000;
+      box-shadow: 0 0 24px rgba(255,215,0,0.25);
+    }
+    .header-left h1 {
+      font-weight: 700; font-size: 24px; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--gold), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .header-left h1 small {
+      font-weight: 400; -webkit-text-fill-color: var(--text-muted);
+      font-size: 14px; margin-left: 6px;
+    }
+    .steady-line {
+      display: flex; flex-wrap: wrap;
+      align-items: center;
+      gap: 20px 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px 20px;
+      margin-bottom: 24px;
+    }
+    .steady-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .steady-item .value { font-weight: 700; color: var(--text-primary); }
+    .steady-item .value.gold { color: var(--gold); }
+    .steady-item .value.cyan { color: var(--cyan); }
+    .steady-item .value.purple { color: var(--purple); }
+    .badge-mode {
+      background: rgba(255,215,0,0.12);
+      border: 1px solid rgba(255,215,0,0.25);
+      padding: 2px 14px;
+      border-radius: 100px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--gold);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+    }
+    .stat-card .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .stat-card .value {
+      font-size: 24px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .stat-card .value.gold { color: var(--gold); }
+    .stat-card .value.blue { color: var(--blue); }
+    .stat-card .value.purple { color: var(--purple); }
+    .stat-card .value.green { color: var(--green); }
+    .stat-card .value.cyan { color: var(--cyan); }
+    .pipeline-flow {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 20px 18px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    .pipeline-flow .title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .pipeline-flow .title i { color: var(--gold); }
+    .pipeline-stages {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: nowrap;
+      min-width: fit-content;
+    }
+    .stage-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 100px;
+      transition: 0.3s;
+      opacity: 0.5;
+      filter: grayscale(0.5);
+    }
+    .stage-node.active { opacity: 1; filter: grayscale(0); }
+    .stage-node .node-ring {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border-color);
+      color: var(--text-muted);
+      transition: 0.3s;
+      position: relative;
+    }
+    .stage-node .node-ring .gear { font-size: 28px; transition: transform 0.3s; }
+    .stage-node.running .node-ring .gear {
+      animation: spin-gear 1.6s cubic-bezier(0.4,0,0.2,1) infinite;
+    }
+    @keyframes spin-gear {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.08); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+    .stage-node .node-ring .status-ring {
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      transition: 0.3s;
+    }
+    .stage-node.running .node-ring .status-ring {
+      border-color: var(--gold);
+      border-top-color: transparent;
+      animation: spin-ring 0.9s linear infinite;
+      box-shadow: 0 0 28px rgba(255,215,0,0.3);
+    }
+    @keyframes spin-ring { to { transform: rotate(360deg); } }
+    .stage-node.success .node-ring {
+      border-color: var(--green);
+      background: rgba(46,217,140,0.12);
+      color: var(--green);
+    }
+    .stage-node.running .node-ring {
+      border-color: var(--gold);
+      background: rgba(255,215,0,0.08);
+      color: var(--gold);
+    }
+    .stage-node.failed .node-ring {
+      border-color: var(--red);
+      background: rgba(242,90,106,0.12);
+      color: var(--red);
+    }
+    .node-label {
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+    .node-sub {
+      font-size: 9px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .stage-connector {
+      flex: 0 0 30px;
+      height: 3px;
+      background: var(--border-color);
+      border-radius: 2px;
+      transition: 0.3s;
+      position: relative;
+      min-width: 12px;
+    }
+    .stage-connector.success { background: var(--green); box-shadow: 0 0 16px rgba(46,217,140,0.3); }
+    .stage-connector.running { background: var(--gold); box-shadow: 0 0 16px rgba(255,215,0,0.3); }
+    .stage-connector.failed { background: var(--red); }
+    .stage-connector::after {
+      content: '';
+      position: absolute;
+      right: -6px;
+      top: 50%;
+      transform: translateY(-50%);
+      border-top: 6px solid transparent;
+      border-bottom: 6px solid transparent;
+      border-left: 8px solid var(--border-color);
+      transition: 0.3s;
+    }
+    .stage-connector.success::after { border-left-color: var(--green); }
+    .stage-connector.running::after { border-left-color: var(--gold); }
+    .main-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 820px) { .main-grid { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+    }
+    .panel-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .panel-head h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .panel-head h3 i { color: var(--gold); }
+    .log-list {
+      display: flex; flex-direction: column;
+      gap: 6px;
+      max-height: 160px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .log-list::-webkit-scrollbar { width: 3px; }
+    .log-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+    .log-item {
+      display: flex; align-items: flex-start;
+      gap: 8px;
+      padding: 5px 10px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      border-left: 3px solid var(--border-color);
+      font-size: 12px;
+    }
+    .log-item .icon { font-size: 13px; flex-shrink: 0; width: 18px; text-align: center; }
+    .log-item .text { color: var(--text-secondary); line-height: 1.3; }
+    .log-item .text strong { color: var(--text-primary); }
+    .log-item .time { font-size: 10px; color: var(--text-muted); flex-shrink: 0; margin-left: auto; }
+    .log-item.success { border-left-color: var(--green); }
+    .log-item.error { border-left-color: var(--red); }
+    .log-item.warning { border-left-color: var(--gold); }
+    .log-item.info { border-left-color: var(--blue); }
+    #scanBox {
+      font-size: 11px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+    .scan-row {
+      display: flex; justify-content: space-between;
+      padding: 4px 0; border-bottom: 1px solid #0e1620;
+      font-size: 11px;
+    }
+    .scan-row .tid { color: var(--cyan); }
+    .scan-row .role { color: var(--text-secondary); }
+    .scan-row .fp { color: var(--text-muted); }
+    .scan-row.mismatch { background: rgba(255,60,60,0.06); }
+    .scan-row.mismatch .fp { color: var(--red); }
+    .sync-bar {
+      display: flex; flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
+      margin-bottom: 16px;
+    }
+    .sync-bar input {
+      flex: 1;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-family: inherit;
+      min-width: 120px;
+    }
+    .sync-bar input::placeholder { color: var(--text-muted); }
+    .sync-bar button {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-family: inherit;
+    }
+    .sync-bar button:hover { border-color: var(--gold); color: #fff; }
+    .sync-bar button.sync { border-color: rgba(179,136,255,0.2); color: var(--purple); }
+    .sync-bar button.sync:hover { background: rgba(179,136,255,0.1); }
+    .trigger-area {
+      display: flex; flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .btn-primary {
+      background: var(--gold);
+      border: none;
+      color: #000;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 30px;
+      border-radius: 100px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 4px 24px rgba(255,215,0,0.25);
+      font-family: inherit;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 36px rgba(255,215,0,0.4); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-family: inherit;
+    }
+    .btn-secondary:hover { border-color: var(--gold); color: #fff; }
+    @media (max-width: 600px) {
+      .container { padding: 14px; }
+      .header-left h1 { font-size: 18px; }
+      .stage-node { min-width: 70px; }
+      .node-ring { width: 48px; height: 48px; font-size: 18px; }
+      .node-ring .gear { font-size: 20px; }
+      .steady-line { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
 </head>
 <body>
 
 <div class="container">
 
-<h1>IKI1UC · Axiom‑Orbit‑System <span style="color:#5a7a8a;font-size:14px;font-weight:300;">v2 — stabil · interaktiv · synchron</span></h1>
+  <header class="header">
+    <div class="header-left">
+      <div class="logo"><i class="fas fa-arrow-right-arrow-left"></i></div>
+      <h1>◉ SPRUNG <small>· SURE · Industrie‑6.0</small></h1>
+    </div>
+  </header>
 
-<!-- STATUS -->
-<div class="flex" style="justify-content:space-between;">
-  <span class="status">🔷 Modul‑Status: <span id="moduleStatus" class="ok">● geladen</span></span>
-  <span class="status">🌀 Orbit: <span id="orbitStatus" class="badge aktiv">AKTIV</span></span>
-  <span class="status">📡 Sync: <span id="syncStatus" class="ok">● verbunden</span></span>
-</div>
+  <!-- STEADY-LINE -->
+  <div class="steady-line">
+    <div class="steady-item">
+      <i class="fas fa-bullseye" style="color:var(--gold);"></i>
+      Fixpunkt: <span class="value gold" id="fixDisplay">0.763</span>
+    </div>
+    <div class="steady-item">
+      <i class="fas fa-wave-square" style="color:var(--cyan);"></i>
+      Orbit‑Modus: <span class="badge-mode" id="modeDisplay">OCTA</span>
+    </div>
+    <div class="steady-item">
+      <i class="fas fa-rotate" style="color:var(--purple);"></i>
+      STATE: <span class="value purple" id="stateDisplay">STABIL</span>
+    </div>
+    <div class="steady-item">
+      <i class="fas fa-clock" style="color:var(--text-muted);"></i>
+      <span id="timestamp">—</span>
+    </div>
+    <div class="steady-item" style="margin-left:auto;">
+      <span id="roleDisplay" style="font-size:11px;color:var(--text-muted);">👑 LEADER</span>
+    </div>
+  </div>
 
-<!-- CANVAS -->
-<canvas id="orbitCanvas" width="700" height="300"></canvas>
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card"><div class="label">◉ SPRUNG</div><div class="value gold" id="metricPhi">–</div></div>
+    <div class="stat-card"><div class="label">● SURE</div><div class="value blue" id="metricSure">–</div></div>
+    <div class="stat-card"><div class="label">🏙️ OLDCITY</div><div class="value purple" id="metricOldcity">–</div></div>
+    <div class="stat-card"><div class="label">🏗️ NEUCITY</div><div class="value green" id="metricNeucity">–</div></div>
+    <div class="stat-card"><div class="label">🔄 Sync‑Count</div><div class="value cyan" id="syncCount">0</div></div>
+    <div class="stat-card"><div class="label">📡 Code‑Status</div><div class="value" id="codeStatus" style="color:var(--green);font-size:14px;">✅ bereit</div></div>
+  </div>
 
-<!-- STEUERUNG -->
-<div class="flex">
-  <button class="btn" id="btnPlay">⏸ Pause</button>
-  <button class="btn" id="btnStep">▶ Schritt</button>
-  <button class="btn" id="btnReset">⟲ Reset</button>
-  <span class="label">Geschw.</span>
-  <input type="range" id="speedSlider" min="1" max="10" value="3">
-  <span class="label" id="speedLabel">3×</span>
-  <button class="btn" id="btnModeIQQ">IQQ</button>
-  <button class="btn" id="btnModeOCTA">OCTA</button>
-  <button class="btn" id="btnModeA81">A81</button>
-</div>
+  <!-- PIPELINE FLOW -->
+  <div class="pipeline-flow">
+    <div class="title"><i class="fas fa-arrow-right"></i> SPRUNG‑Pipeline · 4 → 0 → 1 → 2 → 4 → ◉</div>
+    <div class="pipeline-stages" id="pipelineStages"></div>
+  </div>
 
-<!-- AXIOM‑ANZEIGE -->
-<div class="flex" style="font-size:13px;color:#8ab0c0;gap:16px;">
-  <span>🌀 IQQ: <span id="axiomIQQ" style="color:#ffd700;">9 → 3 → 9 → 3</span></span>
-  <span>◎ OCTA: <span id="axiomOCTA" style="color:#6cf;">◉ ◆ △ ▣ ↺</span></span>
-  <span>📐 A81: <span id="axiomA81" style="color:#b388ff;">27 · 81 · 243 · 729</span></span>
-</div>
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+    <div class="panel">
+      <div class="panel-head">
+        <h3><i class="fas fa-terminal"></i> Logs</h3>
+        <span style="font-size:10px;color:var(--text-muted);">Speed: <span id="speedDisplay">1.0×</span></span>
+      </div>
+      <div class="log-list" id="logList"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <h3><i class="fas fa-users"></i> Rollen‑Scanner</h3>
+        <span style="font-size:10px;color:var(--text-muted);" id="tabCount">1 Tab</span>
+      </div>
+      <div id="scanBox">
+        <div class="scan-row"><span class="tid">—</span><span class="role">—</span><span class="fp">—</span></div>
+      </div>
+      <div id="mismatchLog" style="font-size:10px;color:var(--red);max-height:40px;overflow:auto;margin-top:6px;"></div>
+    </div>
+  </div>
 
-<!-- LOG -->
-<div id="log">System geladen · Orbit v2</div>
+  <!-- SYNC-BAR -->
+  <div class="sync-bar">
+    <i class="fas fa-broadcast" style="color:var(--purple);"></i>
+    <input type="text" id="syncInput" placeholder="Nachricht …" value="sprung:ready">
+    <button class="sync" id="btnSync">🔄 SYNC</button>
+    <button id="btnBroadcast">📢 BC</button>
+    <button id="btnReset">⟲ Reset</button>
+  </div>
+
+  <!-- TRIGGER -->
+  <div class="trigger-area">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-secondary" id="btnP4">P4 · start</button>
+      <button class="btn-secondary" id="btnP0">P0 · wake</button>
+      <button class="btn-secondary" id="btnP1">P1 · melt</button>
+      <button class="btn-secondary" id="btnP2">P2 · merge</button>
+      <button class="btn-secondary" id="btnPe">Pe · finalize</button>
+    </div>
+    <button class="btn-primary" id="btnTrigger"><i class="fas fa-play"></i> ◉ SPRUNG auslösen</button>
+  </div>
 
 </div>
 
 <script>
 "use strict";
 /* ================================================================
-   IKI1UC · Axiom‑Orbit‑System v2
-   Fixes basierend auf RUN21‑Kritik:
-   ✔ Modul‑Validierung + Fehlerbehandlung (try/catch, Fallback)
-   ✔ Orbit‑Index sicher abgefangen (kein Out‑of‑Bounds)
-   ✔ State‑Maschine (läuft/pausiert, Geschwindigkeit, Modus)
-   ✔ Interaktion (Play/Pause, Speed, Modi)
-   ✔ Axiom‑Integration (Orbit‑Symbole triggern Axiom‑Events)
-   ✔ Orbit‑Pfad (letzte 5 Schritte sichtbar)
-   ✔ Synchronisation (BroadcastChannel für Tab‑Sync)
-   ✔ Animation (kontinuierlicher Orbit‑Lauf)
+   SPRUNG · SURE – Minimal-Dashboard (All-in-One)
+   Module: SPRUNG, SURE, OLDCITY, NEUCITY
    ================================================================ */
 
-  // ─── MODUL‑VALIDIERUNG ─────────────────────────────────────────
-  const requiredModules = [
-    'core.js', 'SYS.js', 'axiom.js', 'atom.js', 'molecule.js',
-    'rawator.js', 'rawator-81.js', 'rawator-life.js',
-    'RAWATOR.geo.json', 'RAWATOR.id.json',
-    'RESPO.room.js', 'NC.room.js', 'HOLO.room.js',
-    'HOLO.engine.js', 'beam.js', 'beam.json',
-    'user.json', 'use.json'
-  ];
-
-  const loaded = [];
-  const failed = [];
-
-  requiredModules.forEach(file => {
-    try {
-      // Prüfe, ob die Datei existiert (nur als Hinweis, kein blockierender Fehler)
-      // Wir nutzen einen einfachen Fetch‑Test, aber ohne Blockade.
-      // Im echten Betrieb würden hier dynamische Imports oder Script‑Tags stehen.
-      // Da wir in einer HTML‑Datei sind, simulieren wir die Prüfung.
-      loaded.push(file);
-    } catch (_) {
-      failed.push(file);
-    }
+  // ─── MODULE ─────────────────────────────────────────────────────
+  const SPRUNG = (v) => ({
+    sign: "◉",
+    value: v,
+    next: v + 1,
+    unify: true,
+    mode: "SPRUNG"
   });
 
-  // Status anzeigen
-  const modStatus = document.getElementById('moduleStatus');
-  if (failed.length === 0) {
-    modStatus.textContent = '● ' + loaded.length + ' Module geladen';
-    modStatus.className = 'ok';
-  } else {
-    modStatus.textContent = '⚠️ ' + failed.length + ' Module fehlen: ' + failed.join(', ');
-    modStatus.className = 'err';
+  const SURE = (v) => ({
+    sign: "●",
+    value: v,
+    stand: true,
+    mode: "SURE"
+  });
+
+  const OLDCITY = {
+    HY: () => ({ seg: ["◉","3","9","◎","81","3↺"], cache: false }),
+    PE: () => ({ seg: ["◉","9","◎","81","◆","△","▣"], cache: false }),
+    PER: () => ({ seg: ["3","9","81","◆","756","△","27","▣","3↺"], cache: false })
+  };
+
+  const NEUCITY = {
+    leitbahn: (v) => ({ breite: 9*v, höhe: 27*v, tiefe: 81*v, trans: 243*v }),
+    gegenCache: () => ({ HY: OLDCITY.HY().seg.slice().reverse(), PE: OLDCITY.PE().seg.slice().reverse(), PER: OLDCITY.PER().seg.slice().reverse() }),
+    tmp: (v) => ({ TMPa: v*3, TMPb: v*9, TMPg: v*27 })
+  };
+
+  // ─── PIPELINE ──────────────────────────────────────────────────
+  const PIPELINE_ORDER = ['P4','P0','P1','P2','Pe'];
+  const PIPELINE_MODULES = {
+    P4: { id: "P4-start", action: "Initialisierung", icon: "fa-play" },
+    P0: { id: "P0-wake", action: "Aktivierung", icon: "fa-bolt" },
+    P1: { id: "P1-melt", action: "Transformation", icon: "fa-fire" },
+    P2: { id: "P2-merge", action: "Zusammenführung", icon: "fa-code-merge" },
+    Pe: { id: "Pe-finalize", action: "Abschluss", icon: "fa-flag-checkered" }
+  };
+
+  // ─── STATE ──────────────────────────────────────────────────────
+  const state = {
+    isRunning: false,
+    status: PIPELINE_ORDER.map(() => 'pending'),
+    results: PIPELINE_ORDER.map(() => null),
+    logs: [],
+    fix: 0.763,
+    modeOrbit: 'OCTA',
+    stateOrbit: 'STABIL',
+    tabId: Math.random().toString(36).slice(2, 6).toUpperCase(),
+    isLeader: false,
+    knownTabs: new Map(),
+    syncCount: 0,
+    sprung: SPRUNG(9),
+    sure: SURE(9),
+    oldcity: OLDCITY.HY(),
+    neucity: NEUCITY.leitbahn(3)
+  };
+
+  // ─── DOM-REFS ──────────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const stagesEl = $('pipelineStages');
+  const logEl = $('logList');
+  const scanBox = $('scanBox');
+  const mismatchLog = $('mismatchLog');
+  const triggerBtn = $('btnTrigger');
+
+  // ─── CODE‑FINGERPRINT ──────────────────────────────────────────
+  function computeFingerprint() {
+    const s = 'sprung-sure-v1' + JSON.stringify(PIPELINE_ORDER);
+    let h = 5381;
+    for (let i=0; i<s.length; i++) h = ((h*33) ^ s.charCodeAt(i)) >>> 0;
+    return h.toString(16);
+  }
+  const ownFingerprint = computeFingerprint();
+
+  // ─── LEADER‑ELECTION ────────────────────────────────────────────
+  const LEADER_KEY = 'sprung-leader';
+  setInterval(() => {
+    const now = Date.now();
+    const raw = localStorage.getItem(LEADER_KEY);
+    const last = raw ? Number(raw) : 0;
+    if (state.isLeader) {
+      localStorage.setItem(LEADER_KEY, String(now));
+    } else if (now - last > 3000) {
+      localStorage.setItem(LEADER_KEY, String(now));
+      state.isLeader = true;
+      log('👑 Leader übernommen', 'info');
+      updateRoleUI();
+    }
+  }, 1000);
+
+  // ─── BROADCASTCHANNEL ───────────────────────────────────────────
+  let bc = null;
+  try {
+    bc = new BroadcastChannel('sprung');
+    bc.onmessage = (e) => {
+      const data = e.data;
+      if (!data) return;
+      if (data.type === 'fix') {
+        state.fix = data.fix;
+        state.modeOrbit = data.mode || getModeFromFix(data.fix);
+        state.stateOrbit = data.state || 'STABIL';
+        updateSteadyLine();
+        updateSpeed();
+      }
+      if (data.type === 'presence') handlePresence(data);
+      if (data.type === 'sync') {
+        $('syncInput').value = data.payload || '';
+        log(`📨 Empfangen: ${data.payload}`, 'info');
+        state.syncCount++;
+        $('syncCount').textContent = state.syncCount;
+      }
+    };
+  } catch (_) {}
+
+  function broadcast(msg) { if(bc) try{bc.postMessage(msg);}catch(_){} }
+
+  // ─── FIX → MODE ──────────────────────────────────────────────────
+  function getModeFromFix(fix) {
+    if (fix < 0.33) return 'IQQ';
+    if (fix < 0.66) return 'NC';
+    if (fix < 0.88) return 'OCTA';
+    return 'A81';
   }
 
-  // ─── ORBIT‑ENGINE (State‑Maschine) ────────────────────────────
-  const ORBIT = [
-    "◉","↗","↘","3","9","↘","↗","◎","↗","↘","3","9","↘","↗",
-    "◎","↗","↘","81","◆","↘","↗","△","↗","↘","27","▣","↘","↗","3","↺"
-  ];
+  // ─── CORE SCAN (Modul‑Daten) ──────────────────────────────────
+  function coreScan() {
+    return {
+      sprung: state.sprung,
+      sure: state.sure,
+      oldcity: state.oldcity,
+      neucity: state.neucity,
+      fix: state.fix,
+      mode: state.modeOrbit
+    };
+  }
 
-  // Axiom‑Mapping: Symbol → Axiom‑Kategorie
-  const AXIOM_MAP = {
-    '3': 'IQQ', '9': 'IQQ',
-    '◎': 'OCTA', '◉': 'OCTA', '◆': 'OCTA', '△': 'OCTA', '▣': 'OCTA', '↺': 'OCTA',
-    '81': 'A81', '27': 'A81', '243': 'A81', '729': 'A81'
-  };
+  // ─── GHOST‑SIM ──────────────────────────────────────────────────
+  function ghostSim() {
+    state.fix += (Math.random() - 0.48) * 0.015;
+    state.fix = Math.min(0.95, Math.max(0.15, state.fix));
+    state.modeOrbit = getModeFromFix(state.fix);
+    state.stateOrbit = state.fix > 0.7 ? 'STABIL' : state.fix > 0.4 ? 'MODERAT' : 'LOW';
+    // Module updaten
+    state.sprung = SPRUNG(Math.round(state.fix * 10));
+    state.sure = SURE(Math.round(state.fix * 10));
+    state.oldcity = OLDCITY.HY();
+    state.neucity = NEUCITY.leitbahn(Math.round(state.fix * 3) || 1);
+    updateSteadyLine();
+    updateSpeed();
+    broadcast({ type: 'fix', fix: state.fix, mode: state.modeOrbit, state: state.stateOrbit });
+    const core = coreScan();
+    $('metricPhi').textContent = core.sprung.value;
+    $('metricSure').textContent = core.sure.value;
+    $('metricOldcity').textContent = core.oldcity.seg.join(' ');
+    $('metricNeucity').textContent = core.neucity.breite + '×' + core.neucity.höhe + '×' + core.neucity.tiefe;
+  }
+  setInterval(ghostSim, 4000);
+  setTimeout(ghostSim, 300);
 
-  const state = {
-    index: 0,
-    running: true,
-    speed: 3,
-    mode: 'IQQ',      // IQQ | OCTA | A81
-    history: [],      // letzte 5 Indizes für Pfad
-    timer: null,
-    axiomCount: { IQQ: 0, OCTA: 0, A81: 0 }
-  };
+  // ─── UPDATE FUNCTIONS ───────────────────────────────────────────
+  function updateSteadyLine() {
+    $('fixDisplay').textContent = state.fix.toFixed(3);
+    $('modeDisplay').textContent = state.modeOrbit;
+    $('stateDisplay').textContent = state.stateOrbit;
+  }
 
-  // ─── CANVAS ────────────────────────────────────────────────────
-  const canvas = document.getElementById('orbitCanvas');
-  const ctx = canvas.getContext('2d');
+  function updateSpeed() {
+    const speed = (0.5 + state.fix * 1.5).toFixed(1);
+    $('speedDisplay').textContent = speed + '×';
+  }
 
-  function drawOrbit() {
-    const w = canvas.width, h = canvas.height;
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, w, h);
+  function updateRoleUI() {
+    const el = $('roleDisplay');
+    el.textContent = state.isLeader ? '👑 LEADER' : '👤 FOLLOWER';
+  }
 
-    // ─── Orbit‑Pfad (letzte 5 Schritte) ──────────────────────
-    const history = state.history.slice(-5);
-    history.forEach((idx, i) => {
-      const alpha = 0.1 + (i / history.length) * 0.3;
-      const x = 80 + (w - 160) * (i / Math.max(history.length - 1, 1));
-      const y = h - 30;
-      ctx.fillStyle = `rgba(108, 204, 255, ${alpha})`;
-      ctx.font = '16px Consolas';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'bottom';
-      ctx.fillText(ORBIT[idx] || '?', x, y);
-      // Verbindungslinie
-      if (i > 0) {
-        ctx.strokeStyle = `rgba(108, 204, 255, ${alpha * 0.3})`;
-        ctx.lineWidth = 1;
-        const prevX = 80 + (w - 160) * ((i-1) / Math.max(history.length - 1, 1));
-        ctx.beginPath();
-        ctx.moveTo(prevX, y);
-        ctx.lineTo(x, y);
-        ctx.stroke();
+  // ─── PRESENCE / SCANNER ─────────────────────────────────────────
+  function broadcastPresence() {
+    broadcast({
+      type: 'presence',
+      tabId: state.tabId,
+      role: state.isLeader ? 'LEADER' : 'FOLLOWER',
+      fp: ownFingerprint,
+      ts: Date.now()
+    });
+  }
+  setInterval(broadcastPresence, 2500);
+
+  function handlePresence(data) {
+    const prev = state.knownTabs.get(data.tabId);
+    const mismatch = data.fp !== ownFingerprint;
+    if ((!prev || !prev.mismatch) && mismatch) {
+      mismatchLog.innerHTML += `<div>⚠️ Code‑Mismatch → Tab ${data.tabId}</div>`;
+      mismatchLog.scrollTop = mismatchLog.scrollHeight;
+      log(`⚠️ Code‑Mismatch → Tab ${data.tabId}`, 'warning');
+      $('codeStatus').textContent = '⚠️ Mismatch';
+      $('codeStatus').style.color = 'var(--red)';
+    }
+    if (prev && prev.role !== data.role) {
+      log(`🔍 Rollenwechsel → ${data.tabId}: ${prev.role} → ${data.role}`, 'info');
+    }
+    state.knownTabs.set(data.tabId, {
+      role: data.role,
+      fp: data.fp,
+      lastSeen: Date.now(),
+      mismatch
+    });
+    renderScanner();
+  }
+
+  function renderScanner() {
+    const now = Date.now();
+    for (const [id, info] of state.knownTabs) {
+      if (now - info.lastSeen > 5000) state.knownTabs.delete(id);
+    }
+    let html = '';
+    html += `<div class="scan-row"><span class="tid">${state.tabId} (ich)</span><span class="role">${state.isLeader ? 'LEADER' : 'FOLLOWER'}</span><span class="fp">FP ${ownFingerprint}</span></div>`;
+    for (const [id, info] of state.knownTabs) {
+      const cls = info.mismatch ? ' scan-row mismatch' : '';
+      html += `<div class="scan-row${cls}"><span class="tid">${id}</span><span class="role">${info.role}</span><span class="fp">FP ${info.fp}${info.mismatch ? ' ⚠️' : ''}</span></div>`;
+    }
+    scanBox.innerHTML = html;
+    $('tabCount').textContent = (state.knownTabs.size + 1) + ' Tabs';
+    const hasMismatch = Array.from(state.knownTabs.values()).some(v => v.mismatch);
+    if (!hasMismatch && state.knownTabs.size > 0) {
+      $('codeStatus').textContent = '✅ synchron';
+      $('codeStatus').style.color = 'var(--green)';
+    } else if (hasMismatch) {
+      $('codeStatus').textContent = '⚠️ Mismatch';
+      $('codeStatus').style.color = 'var(--red)';
+    }
+  }
+  setInterval(renderScanner, 3000);
+
+  // ─── PIPELINE AUSFÜHREN ─────────────────────────────────────────
+  async function runPipeline() {
+    if (state.isRunning) return;
+    state.isRunning = true;
+    triggerBtn.disabled = true;
+    triggerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SPRUNG läuft …';
+
+    state.status = PIPELINE_ORDER.map(() => 'pending');
+    state.results = PIPELINE_ORDER.map(() => null);
+    state.logs = [];
+
+    const core = coreScan();
+    state.logs.push({
+      icon: '⚡',
+      text: `<strong>◉ SPRUNG</strong> · Start · Fix ${state.fix.toFixed(3)}`,
+      time: getTime(),
+      type: 'info'
+    });
+    renderStages();
+    renderLogs();
+    updateTimestamp();
+
+    let currentCore = core;
+
+    for (let i = 0; i < PIPELINE_ORDER.length; i++) {
+      const id = PIPELINE_ORDER[i];
+      const mod = PIPELINE_MODULES[id];
+      state.status[i] = 'running';
+      renderStages();
+      state.logs.push({
+        icon: '⚙️',
+        text: `<strong>${mod.id}</strong> · ${mod.action} …`,
+        time: getTime(),
+        type: 'warning'
+      });
+      renderLogs();
+
+      try {
+        const result = {
+          phase: mod.id,
+          action: mod.action,
+          input: currentCore,
+          sprung: state.sprung,
+          sure: state.sure,
+          timestamp: Date.now()
+        };
+        state.results[i] = result;
+        state.status[i] = 'success';
+        currentCore = { ...currentCore, lastPhase: mod.id, result };
+        const str = JSON.stringify(result).slice(0, 60);
+        state.logs.push({
+          icon: '✅',
+          text: `<strong>${mod.id}</strong> · → ${str}`,
+          time: getTime(),
+          type: 'success'
+        });
+      } catch (err) {
+        state.status[i] = 'failed';
+        state.logs.push({
+          icon: '❌',
+          text: `<strong>${mod.id}</strong> · Fehler: ${err.message || err}`,
+          time: getTime(),
+          type: 'error'
+        });
+      }
+      renderStages();
+      renderLogs();
+      updateTimestamp();
+      await new Promise(r => setTimeout(r, 500 + state.fix * 200));
+    }
+
+    // SPRUNG – Endergebnis
+    state.logs.push({
+      icon: '🏁',
+      text: `<strong>◉ SPRUNG</strong> · abgeschlossen · Fix ${state.fix.toFixed(3)}`,
+      time: getTime(),
+      type: 'success'
+    });
+    renderLogs();
+
+    state.isRunning = false;
+    triggerBtn.disabled = false;
+    triggerBtn.innerHTML = '<i class="fas fa-play"></i> ◉ SPRUNG auslösen';
+    updateTimestamp();
+    $('successCount').textContent = state.status.filter(s => s === 'success').length;
+  }
+
+  // ─── MANUELLER SCHRITT ──────────────────────────────────────────
+  async function manualStep(idx) {
+    if (state.isRunning) return;
+    const id = PIPELINE_ORDER[idx];
+    const mod = PIPELINE_MODULES[id];
+    state.status = state.status.map((_, i) => i === idx ? 'running' : 'pending');
+    state.results = state.results.map(() => null);
+    state.logs = [];
+
+    const core = coreScan();
+    state.logs.push({
+      icon: '🔧',
+      text: `<strong>Manuell</strong> · ${mod.id} · ${mod.action}`,
+      time: getTime(),
+      type: 'info'
+    });
+    renderStages();
+    renderLogs();
+    updateTimestamp();
+
+    try {
+      const result = {
+        phase: mod.id,
+        action: mod.action,
+        input: core,
+        sprung: state.sprung,
+        sure: state.sure,
+        timestamp: Date.now()
+      };
+      state.results[idx] = result;
+      state.status[idx] = 'success';
+      const str = JSON.stringify(result).slice(0, 60);
+      state.logs.push({
+        icon: '✅',
+        text: `<strong>${mod.id}</strong> · → ${str}`,
+        time: getTime(),
+        type: 'success'
+      });
+    } catch (err) {
+      state.status[idx] = 'failed';
+      state.logs.push({
+        icon: '❌',
+        text: `<strong>${mod.id}</strong> · Fehler: ${err.message || err}`,
+        time: getTime(),
+        type: 'error'
+      });
+    }
+    renderStages();
+    renderLogs();
+    updateTimestamp();
+    $('successCount').textContent = state.status.filter(s => s === 'success').length;
+  }
+
+  // ─── RENDER FUNCTIONS ───────────────────────────────────────────
+  function renderStages() {
+    let html = '';
+    state.status.forEach((status, idx) => {
+      const id = PIPELINE_ORDER[idx];
+      const mod = PIPELINE_MODULES[id];
+      const cls = status;
+      let iconHtml = `<i class="fas ${mod.icon} gear"></i>`;
+      if (status === 'running') iconHtml = `<i class="fas fa-gear gear"></i>`;
+
+      html += `
+        <div class="stage-node ${cls} active">
+          <div class="node-ring">
+            <span class="status-ring"></span>
+            ${iconHtml}
+          </div>
+          <div class="node-label">${mod.id}</div>
+          <div class="node-sub">${
+            status === 'running' ? '⚙️ läuft …' :
+            status === 'success' ? '✓ fertig' :
+            status === 'failed' ? '✗ fehler' : '⏳ bereit'
+          }</div>
+        </div>
+      `;
+      if (idx < PIPELINE_ORDER.length - 1) {
+        const nextStatus = state.status[idx + 1];
+        let conn = '';
+        if (status === 'success' && (nextStatus === 'success' || nextStatus === 'running' || nextStatus === 'failed')) conn = 'success';
+        else if (status === 'running') conn = 'running';
+        else if (status === 'failed') conn = 'failed';
+        html += `<div class="stage-connector ${conn}"></div>`;
       }
     });
-
-    // ─── Hauptsymbol ──────────────────────────────────────────
-    const symbol = ORBIT[state.index] || '?';
-    ctx.fillStyle = '#6cf';
-    ctx.font = '60px Consolas';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = '#6cf';
-    ctx.shadowBlur = 20;
-    ctx.fillText(symbol, w/2, h/2 - 20);
-    ctx.shadowBlur = 0;
-
-    // ─── Index + Axiom‑Info ──────────────────────────────────
-    const axiom = AXIOM_MAP[symbol] || '—';
-    ctx.fillStyle = '#5a7a8a';
-    ctx.font = '14px Consolas';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillText(`#${state.index} · ${axiom}`, w/2, h/2 + 40);
-
-    // ─── Geschwindigkeit + Modus ─────────────────────────────
-    ctx.fillStyle = '#3a4a5a';
-    ctx.font = '11px Consolas';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText(`⏩ ${state.speed}× · ${state.mode}`, 12, h - 6);
-    ctx.textAlign = 'right';
-    ctx.fillText(`Symbol ${state.index+1}/${ORBIT.length}`, w - 12, h - 6);
+    stagesEl.innerHTML = html;
   }
 
-  // ─── ORBIT‑STEP ──────────────────────────────────────────────
-  function stepOrbit() {
-    // Sicherer Index
-    const next = (state.index + 1) % ORBIT.length;
-    state.index = next;
-
-    // History pflegen
-    state.history.push(next);
-    if (state.history.length > 10) state.history.shift();
-
-    // Axiom‑Zählung
-    const sym = ORBIT[next];
-    const axiom = AXIOM_MAP[sym] || null;
-    if (axiom && state.mode === axiom) {
-      state.axiomCount[axiom] = (state.axiomCount[axiom] || 0) + 1;
-    }
-
-    drawOrbit();
-    log(`Orbit‑Schritt → ${sym} (${axiom || '—'})`);
-
-    // Sync: BroadcastChannel
-    try {
-      const bc = new BroadcastChannel('iki1uc-orbit');
-      bc.postMessage({ type: 'orbit.step', index: state.index, symbol: sym });
-      bc.close();
-    } catch (_) {}
+  function renderLogs() {
+    let html = '';
+    state.logs.forEach(log => {
+      html += `<div class="log-item ${log.type}"><span class="icon">${log.icon}</span><span class="text">${log.text}</span><span class="time">${log.time}</span></div>`;
+    });
+    logEl.innerHTML = html;
+    logEl.scrollTop = logEl.scrollHeight;
   }
 
-  // ─── PLAY/PAUSE ──────────────────────────────────────────────
-  function togglePlay() {
-    state.running = !state.running;
-    document.getElementById('btnPlay').textContent = state.running ? '⏸ Pause' : '▶ Start';
-    document.getElementById('orbitStatus').textContent = state.running ? 'AKTIV' : 'PAUSE';
-    document.getElementById('orbitStatus').className = 'badge ' + (state.running ? 'aktiv' : 'pause');
-    if (state.running) {
-      startLoop();
-    } else {
-      clearInterval(state.timer);
-      state.timer = null;
-    }
+  function getTime() {
+    const now = new Date();
+    return String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+  }
+  function updateTimestamp() { $('timestamp').textContent = getTime(); }
+
+  function log(msg, type='info') {
+    state.logs.push({ icon: type==='warning'?'⚠️':type==='error'?'❌':type==='success'?'✅':'ℹ️', text: msg, time: getTime(), type });
+    renderLogs();
   }
 
-  function startLoop() {
-    if (state.timer) clearInterval(state.timer);
-    const interval = Math.max(100, 800 - state.speed * 60);
-    state.timer = setInterval(() => {
-      if (state.running) stepOrbit();
-    }, interval);
-  }
+  // ─── EVENTS ──────────────────────────────────────────────────────
+  triggerBtn.addEventListener('click', runPipeline);
 
-  // ─── RESET ────────────────────────────────────────────────────
-  function resetOrbit() {
-    state.index = 0;
-    state.history = [];
-    state.axiomCount = { IQQ: 0, OCTA: 0, A81: 0 };
-    drawOrbit();
-    log('⟲ Orbit zurückgesetzt');
-    // Sync
-    try {
-      const bc = new BroadcastChannel('iki1uc-orbit');
-      bc.postMessage({ type: 'orbit.reset' });
-      bc.close();
-    } catch (_) {}
-  }
-
-  // ─── MODUS-UMSCHALTUNG ──────────────────────────────────────
-  function setMode(mode) {
-    state.mode = mode;
-    document.querySelectorAll('[id^="btnMode"]').forEach(b => b.classList.remove('active'));
-    const btn = document.getElementById('btnMode' + mode);
-    if (btn) btn.classList.add('active');
-    log(`🌀 Modus gewechselt: ${mode}`);
-  }
-
-  // ─── LOG ──────────────────────────────────────────────────────
-  function log(msg) {
-    const logBox = document.getElementById('log');
-    const time = new Date().toLocaleTimeString();
-    logBox.innerHTML += `<br>[${time}] ${msg}`;
-    logBox.scrollTop = logBox.scrollHeight;
-    if (logBox.children.length > 80) logBox.removeChild(logBox.firstChild);
-  }
-
-  // ─── SYNCHRONISATION (BroadcastChannel) ──────────────────────
-  function initSync() {
-    try {
-      const bc = new BroadcastChannel('iki1uc-orbit');
-      bc.onmessage = (e) => {
-        const data = e.data;
-        if (data.type === 'orbit.step') {
-          state.index = data.index;
-          state.history.push(data.index);
-          if (state.history.length > 10) state.history.shift();
-          drawOrbit();
-          log(`📡 Sync‑Schritt von anderem Tab: ${data.symbol}`);
-          document.getElementById('syncStatus').textContent = '● synchronisiert';
-          document.getElementById('syncStatus').className = 'ok';
-        }
-        if (data.type === 'orbit.reset') {
-          state.index = 0;
-          state.history = [];
-          drawOrbit();
-          log('📡 Sync‑Reset von anderem Tab');
-        }
-      };
-      // Nach 2 Sekunden Verbindungsstatus aktualisieren
-      setTimeout(() => {
-        document.getElementById('syncStatus').textContent = '● verbunden';
-        document.getElementById('syncStatus').className = 'ok';
-      }, 500);
-    } catch (_) {
-      document.getElementById('syncStatus').textContent = '○ kein BroadcastChannel';
-      document.getElementById('syncStatus').className = 'err';
-    }
-  }
-
-  // ─── EVENTS ────────────────────────────────────────────────────
-  document.getElementById('btnPlay').addEventListener('click', togglePlay);
-  document.getElementById('btnStep').addEventListener('click', stepOrbit);
-  document.getElementById('btnReset').addEventListener('click', resetOrbit);
-
-  document.getElementById('btnModeIQQ').addEventListener('click', () => setMode('IQQ'));
-  document.getElementById('btnModeOCTA').addEventListener('click', () => setMode('OCTA'));
-  document.getElementById('btnModeA81').addEventListener('click', () => setMode('A81'));
-
-  const speedSlider = document.getElementById('speedSlider');
-  const speedLabel = document.getElementById('speedLabel');
-  speedSlider.addEventListener('input', () => {
-    state.speed = parseInt(speedSlider.value, 10);
-    speedLabel.textContent = state.speed + '×';
-    if (state.running) startLoop();
+  $('btnReset').addEventListener('click', () => {
+    if (state.isRunning) return;
+    state.status = PIPELINE_ORDER.map(() => 'pending');
+    state.results = PIPELINE_ORDER.map(() => null);
+    state.logs = [];
+    state.logs.push({ icon: '🔄', text: 'Pipeline zurückgesetzt', time: getTime(), type: 'info' });
+    renderStages();
+    renderLogs();
+    updateTimestamp();
+    $('successCount').textContent = '0';
   });
 
-  // ─── TASTATUR ──────────────────────────────────────────────────
+  $('btnSync').addEventListener('click', () => {
+    const msg = $('syncInput').value.trim() || 'sprung:ready';
+    state.syncCount++;
+    $('syncCount').textContent = state.syncCount;
+    broadcast({ type: 'sync', payload: msg, from: state.tabId });
+    log(`⬆ SYNC: ${msg}`, 'info');
+  });
+
+  $('btnBroadcast').addEventListener('click', () => {
+    const msg = $('syncInput').value.trim() || 'broadcast:sprung';
+    state.syncCount++;
+    $('syncCount').textContent = state.syncCount;
+    broadcast({ type: 'sync', payload: msg, from: state.tabId });
+    document.querySelectorAll('iframe').forEach(f => {
+      try { f.contentWindow.postMessage({ type: 'sync', payload: msg }, '*'); } catch(_) {}
+    });
+    log(`📢 BC: ${msg}`, 'info');
+  });
+
+  $('syncInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnSync').click(); });
+
+  $('btnP4').addEventListener('click', () => manualStep(0));
+  $('btnP0').addEventListener('click', () => manualStep(1));
+  $('btnP1').addEventListener('click', () => manualStep(2));
+  $('btnP2').addEventListener('click', () => manualStep(3));
+  $('btnPe').addEventListener('click', () => manualStep(4));
+
+  // ─── TASTATUR ────────────────────────────────────────────────────
   document.addEventListener('keydown', (e) => {
-    if (e.key === ' ') { e.preventDefault(); togglePlay(); }
-    if (e.key === 'ArrowRight') stepOrbit();
-    if (e.key === 'r' || e.key === 'R') resetOrbit();
-    if (e.key === '1') setMode('IQQ');
-    if (e.key === '2') setMode('OCTA');
-    if (e.key === '3') setMode('A81');
+    if (e.key === 'Enter' && e.target === $('syncInput')) $('btnSync').click();
+    if (e.key === '1') $('btnP4').click();
+    if (e.key === '2') $('btnP0').click();
+    if (e.key === '3') $('btnP1').click();
+    if (e.key === '4') $('btnP2').click();
+    if (e.key === '5') $('btnPe').click();
+    if (e.key === ' ' && e.target === document.body) {
+      e.preventDefault();
+      triggerBtn.click();
+    }
   });
 
-  // ─── INIT ──────────────────────────────────────────────────────
+  // ─── INIT ────────────────────────────────────────────────────────
   function init() {
-    // Module initialisieren (simuliert)
-    log('🧠 Module geladen: ' + loaded.length);
-    log('⚡ Axiom‑Orbit‑System v2 gestartet');
-
-    // Standard‑Modus aktivieren
-    setMode('IQQ');
-
-    // Sync starten
-    initSync();
-
-    // Ersten Schritt zeichnen
-    state.history.push(0);
-    drawOrbit();
-
-    // Automatischen Lauf starten
-    startLoop();
-
-    // Log‑Begrüßung
-    log('⌨️  Leertaste=Pause  →=Schritt  r=Reset  1=IQQ  2=OCTA  3=A81');
+    const core = coreScan();
+    state.logs.push({ icon: '💡', text: '◉ SPRUNG · ● SURE · geladen', time: getTime(), type: 'info' });
+    state.logs.push({ icon: '🔑', text: `Tab ${state.tabId} · FP ${ownFingerprint}`, time: getTime(), type: 'info' });
+    state.logs.push({ icon: '⌨️', text: '1=P4  2=P0  3=P1  4=P2  5=Pe  Leertaste=SPRUNG', time: getTime(), type: 'info' });
+    state.logs.push({ icon: '🏙️', text: `OLDCITY HY: ${core.oldcity.seg.join(' ')}`, time: getTime(), type: 'info' });
+    state.logs.push({ icon: '🏗️', text: `NEUCITY: ${core.neucity.breite}×${core.neucity.höhe}×${core.neucity.tiefe}`, time: getTime(), type: 'info' });
+    renderStages();
+    renderLogs();
+    updateTimestamp();
+    updateSteadyLine();
+    updateSpeed();
+    updateRoleUI();
+    broadcastPresence();
+    $('codeStatus').textContent = '✅ bereit';
+    $('codeStatus').style.color = 'var(--green)';
+    $('metricPhi').textContent = core.sprung.value;
+    $('metricSure').textContent = core.sure.value;
+    $('metricOldcity').textContent = core.oldcity.seg.join(' ');
+    $('metricNeucity').textContent = core.neucity.breite + '×' + core.neucity.höhe + '×' + core.neucity.tiefe;
   }
-
-  // Fehlerbehandlung für fehlende Module simulieren
-  window.addEventListener('error', (e) => {
-    log('⚠️ Modul-Fehler: ' + e.message);
-  }, true);
-
   init();
 </script>
-
 </body>
 </html>
